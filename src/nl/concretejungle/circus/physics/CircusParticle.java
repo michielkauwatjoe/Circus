@@ -1,4 +1,4 @@
-package nl.concretejungle.circus;
+package nl.concretejungle.circus.physics;
 
 import java.util.ArrayList;
 import nl.concretejungle.toolbox.color.*;

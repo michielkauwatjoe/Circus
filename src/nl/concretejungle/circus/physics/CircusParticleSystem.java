@@ -1,11 +1,11 @@
-package nl.concretejungle.circus;
+package nl.concretejungle.circus.physics;
 
 import java.util.ArrayList;
 
-import scope.circus.physics.CircusParticle;
-import scope.circus.sketches.CircusSketch;
-import java.util.Collections;
-import scope.toolbox.color.*;
+import nl.concretejungle.circus.physics.CircusParticle;
+import nl.concretejungle.circus.sketches.CircusSketch;
+//import java.util.Collections;
+import nl.concretejungle.toolbox.color.*;
 import toxi.physics.*;
 
 public class CircusParticleSystem {
