@@ -1,4 +1,4 @@
-package scope.circus.physics;
+package nl.concretejungle.circus;
 
 import java.util.ArrayList;
 

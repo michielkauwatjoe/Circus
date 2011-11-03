@@ -1,13 +1,13 @@
-package scope.circus.physics;
+package nl.concretejungle.circus;
 
 import java.util.ArrayList;
-import scope.toolbox.color.*;
+import nl.concretejungle.toolbox.color.*;
 
 import java.util.ArrayList;
-import scope.toolbox.color.*;
+import nl.concretejungle.toolbox.color.*;
 
 import toxi.physics.VerletParticle;
-import scope.circus.sketches.CircusSketch;
+import nl.concretejungle.circus.sketches.CircusSketch;
 
 public class CircusParticle extends VerletParticle {
 	CircusSketch sketch;
