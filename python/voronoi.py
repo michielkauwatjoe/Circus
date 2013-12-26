@@ -13,3 +13,10 @@ class Voronoi:
         type can be Euclidian or taxi cab.
         """
         self.type = type
+
+
+    def fortune(self, points):
+        u"""
+        http://en.wikipedia.org/wiki/Fortune%27s_algorithm
+        """
+        pass
