@@ -1,4 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
+#
+# https://github.com/michielkauwatjoe/Circus
+
 class Bezier1(object):
+    u"""
+    Example of Bezier implementation using inline function.
+    """
+
     def make_bezier(self, xys):
         u"""
         xys should be a sequence of 2-tuples (Bezier control points).
