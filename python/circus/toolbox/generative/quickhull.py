@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 #
 # https://github.com/michielkauwatjoe/Circus
 
@@ -7,7 +7,7 @@ from pyhull.convex_hull import ConvexHull
 from pyhull.voronoi import VoronoiTess
 from pyhull.delaunay import DelaunayTri
 
-class QHull(object):
+class QuickHull(object):
     u"""
     Gets facets from list of points using the Python wrapper for qhull.
     """
@@ -22,7 +22,7 @@ class QHull(object):
         return ConvexHull(points)
 
 if __name__ == "__main__":
-    points = [[-0.5, -0.5], [-0.5, 0.5], [0.5, -0.5], [0.5, 0.5], [0,0]]
+    points = [[-0.5, -0.5], [-0.5, 0.5], [0.5, -0.5], [0.5, 0.5], [0, 0]]
     qhull = Qhull()
     voronoi = qhull.voronoi(points)
     print voronoi.vertices, voronoi.regions
