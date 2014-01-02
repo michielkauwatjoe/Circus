@@ -1,5 +1,5 @@
 package nl.concretejungle.circus.sketches;
-import nl.concretejungle.toolbox.generative.video.BelousovZhabotinsky;
+import nl.concretejungle.circus.toolbox.generative.video.BelousovZhabotinsky;
 import processing.core.*;
 
 

@@ -6,7 +6,7 @@
  * http://www.aac.bartlett.ucl.ac.uk/processing/samples/bzr.pdf 
  */
 
-package nl.concretejungle.toolbox.generative.video;
+package nl.concretejungle.circus.toolbox.generative.video;
 import processing.core.*;
 
 public class BelousovZhabotinsky {

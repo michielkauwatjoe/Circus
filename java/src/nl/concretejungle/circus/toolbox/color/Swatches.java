@@ -1,4 +1,4 @@
-package nl.concretejungle.toolbox.color;
+package nl.concretejungle.circus.toolbox.color;
 
 import java.util.ArrayList;
 import java.util.Random;
