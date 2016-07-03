@@ -1,5 +1,5 @@
 size('A2')
-fill(0, 10, 10, 100)
+fill(0, 0, 0)
 h = height()
 sq = 100
 hsq = 0.5 * sq
@@ -21,16 +21,6 @@ rect(0, -qsq, sq, sq + qsq)
 # T
 
 translate(1.5*sq, sq)
-
-'''
-polygon((0, qsq), (0, sq), (qsq + hsq, sq))
-polygon((0, 0), (sq, sq), (2*sq, 0), (1.5*sq, 0), (1.5*sq, -hsq - qsq), (hsq, -sq), (hsq, 0))
-translate(sq, 0)
-#rect(-sq, -sq - qsq, 2*sq, qsq)
-polygon((qsq, sq), (sq + hsq, sq), (sq + hsq, 0), (sq + qsq, 0))
-translate(sq, 0)
-'''
-
 polygon((0, 0), (0, sq), (2*sq, sq), (2*sq, 0), (1.5*sq, 0), (2*sq, -sq), (hsq, -sq), (sq, 0))
 
 # '
