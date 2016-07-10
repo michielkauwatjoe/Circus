@@ -1,16 +1,30 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 #
 # https://github.com/michielkauwatjoe/Circus
 
-import Image
-from sizes import Sizes
+import drawBot
 
-class Circus(Sizes):
-    
-    def canvas(self, mode, size):
+class Circus(object):
+
+    def __init__(self):
+        drawBot.newDrawing()
+        # A3, TODO: switch to A2.
+        drawBot.newPage(1190, 842)
+        self.stepIntoArena()
+        self.juggle()
+        path = '/Users/michiel/Desktop/circus.pdf'
+        drawBot.saveImage(path)
+
+    def juggle(self):
+        pass
+
+    def stepIntoArena(self):
         u"""
-        Build canvas.
+        Step in the arena.
         """
-        image = Image.new(mode, size, "black")
-        image.save("canvas.png")
+        pass
+
+
+if __name__ == "__main__":
+    circus = Circus()
