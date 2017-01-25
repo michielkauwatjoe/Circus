@@ -1,175 +1,185 @@
-from fontTools.ttLib import TTFont
+from robofab.ufoLib import UFOReader
+from robofab.pens.pointPen import PrintingPointPen
+from robofab.glifLib import Glyph
 from tnbits.objects.point import Point
 import os.path
+from wayfinding.pens.cocoapen import CocoaPen
+from wayfinding.pens.wayfindingpen import WayFindingPen
 
-def getGlyphContours(points):
-    u"""
-    Splits up points into separate closed outlines based on start value of point.
-    """ 
-    contours = []
+class NoisePen(object): 
+        
+    def beginPath(self):
+        self.currentPath = [] 
 
-    for i, point in enumerate(points):
+    def addPoint(self, pt, segmentType=None, smooth=False, name=None, **kwargs):
+        self.currentPath.append((pt, segmentType, smooth, name, kwargs))
 
-        if i == 0:
-            contour = [point]
-        elif point.start is True:
-            contour.append(contour[0])
-            contours.append(contour)
-            contour = [point]
-        else:
-            contour.append(point)
+    def endPath(self):
+        u""" Collects segments and flushes."""
+        assert self.currentPath is not None
+        points = self.currentPath
+        self.currentPath = None
 
-        if i == len(points) - 1:
-            contour.append(contour[0])
-            contours.append(contour)
-    return contours
+        if not points:
+            return
+        print points
 
-def shoelace(part):
-    u"""
-    Shoelace algorithm to determine clock direction.
-    """
-    oncurves = []
-    for point in part:
-        if point.type == 1:
-            oncurves.append(point)
+        # Not much more we can do than output a single move segment.
+        if len(points) == 1:
+            pt, segmentType, smooth, name, kwargs = points[0]
+            segments = [("move", [(pt, smooth, name, kwargs)])]
+            self._flush(segments)
+            return
 
-    total = 0
+        segments = []
 
-    for i, point in enumerate(oncurves):
-        if i == len(oncurves) - 1:
-            j = 0
-        else:
-            j = i + 1
+        # Pop first moveTo point.
+        pt, segmentType, smooth, name, kwargs = points[0]
+        segments.append(("move", [(pt, smooth, name, kwargs)]))
+        points.pop(0)
 
-        total += (oncurves[j].x - point.x) * (oncurves[j].y + point.y)
+        currentSegment = []
 
-    return total
+        for pt, segmentType, smooth, name, kwargs in points:
+            currentSegment.append((pt, smooth, name, kwargs))
 
-def sortContours(contours):
-    u"""
-    Sorts glyph contours based on clock direction.
-    """ 
-    sContours = {'cw': [], 'ccw': []} 
+            # Continue appending next point(s) on offcurve points.
+            if segmentType is None:
+                continue
 
-    for contour in contours:
-        if shoelace(contour) < 0:
-            sContours['ccw'].append(contour)
-        else:
-            sContours['cw'].append(contour)
+            segment = (segmentType, currentSegment)
+            segments.append(segment)
+            currentSegment = []
 
-    return sContours
+        print len(segments)
+
+        self._flush(segments)
+
+    def _flush(self, segments):
+        u"""
+        The _flush function should be called for each non-empty sub path
+        with a list of segments, containing tuples of length 2:
+            (segmentType, points)
+
+        The segmentType can be "move", "line", or "curve".  "move" may only
+        occur as the first segment, indicating an _open_ path. A _closed_
+        path does _not_ start with a "move", in fact it will not contain a
+        "move" at all.
+
+        The 'points' field in the 2-tuple is a list of point info tuples. The
+        list has 1 or more items, a point tuple has four items:
+
+            (point, smooth, name, kwargs)
+
+        'point' is an (x, y) coordinate pair.
+
+        For a closed path, the initial moveTo point is defined as the last
+        point of the last segment.
+
+        The 'points' list of "move" and "line" segments always contains exactly
+        one point tuple.
+        """
+        assert len(segments) >= 1
+        path = BezierPath()
+
+        if segments[0][0] == "move":
+            # It's an open path.
+            print 'open'
+            closed = False
+            points = segments[0][1]
+            assert len(points) == 1
+            movePt, smooth, name, kwargs = points[0]
+            #p0 = segment[0]
+            #del segments[0]
+            path.moveTo(movePt)
+
+        nSegments = len(segments)
+
+        for i in range(nSegments):
+            segmentType, points = segments[i]
+            points = [pt for pt, smooth, name, kwargs in points]
+
+            if segmentType == "line":
+                assert len(points) == 1
+                pt = points[0]
+                if i + 1 != nSegments or not closed:
+                    path.lineTo(pt)
+            elif segmentType == "curve":
+                path.curveTo(*points)
+            elif segmentType == "qcurve":
+                path._curveToOne(*points)
+            elif segmentType == "move":
+                pass
+                #path.curveTo(*points)
+            else: 
+                assert 0, "illegal segmentType: %s" % segmentType
+
+        segmentType, points = segments[-1]
+        movePt, smooth, name, kwargs = points[-1]
+        print movePt
+
+        #if closed:
+        path.closePath()
+        #else:
+        #    path.endPath()
+        
+        drawPath(path)
     
-def drawOutlineContour(contour, color):
-    u"""
-    Draws vector points using a CocoaPen.
-    """
-    if len(contour) == 0:
-        return
-
-    path = BezierPath()
-    print 'new path'
-    curves = []
-    curve = [contour[0]]
-
-    for i, point in enumerate(contour[1:]):
-
-        if point.type == 0:
-            offcurve = True
-        else:
-            offcurve = False
-
-        if offcurve is True:
-            curve.append(point)
-        else:
-            curve.append(point)
-            curves.append(curve)
-            curve = [point]
-
-    point0 = curves[0][0]
-    p0 = (point0.x, point0.y)
-    path.moveTo(p0)
-
-    for curve in curves:
-        drawCurve(curve, path)
-
-    path.closePath()
-    fill(0, 0, 0)
-    drawPath(path)
-
-def drawCurve(curve, path):
-    assert len(curve) > 1
-
-    if len(curve) == 2:
-        point = curve[-1]
-        coordinates = (point.x, point.y)
-        path.lineTo(coordinates)
-    elif len(curve) == 3:
-        onCurve0 = curve[0]
-        offCurve = curve[1]
-        onCurve1 = curve[2]
-
-        x0 = onCurve0.x + (offCurve.x - onCurve0.x) * 1 / 1.3
-        y0 = onCurve0.y + (offCurve.y - onCurve0.y) * 1 / 1.3
-
-        offCurve0 = (x0, y0)
-
-        x1 = onCurve1.x - (onCurve1.x - offCurve.x) * 1 / 1.3
-        y1 = onCurve1.y - (onCurve1.y - offCurve.y) * 1 / 1.3
-        offCurve1 = (x1, y1)
-
-        #self.drawMarkerCircle(offCurve0, NSColor.yellowColor(), 4)
-        #self.drawMarkerCircle(offCurve1, NSColor.yellowColor(), 4)
-        #NSColor.blackColor().set()
-        fill(0, 0, 0)
-        onCurve = (onCurve1.x, onCurve1.y)
-        path.curveTo(offCurve0, offCurve1, onCurve)
-    else:
-
-        offCurve0 = curve[1]
-        offCurve1 = curve[2]
-        curve0 = curve[:2]
-        curve1 = curve[2:]
-
-        # Implied point.
-        x = offCurve0.x + (offCurve1.x - offCurve0.x) * 0.5
-        y = offCurve0.y + (offCurve1.y - offCurve0.y) * 0.5
-        newOnCurve = Point(x, y, 1)
-        #drawMarkerCircle((x, y), NSColor.greenColor(), 4)
-
-        curve0.append(newOnCurve)
-        curve1.insert(0, newOnCurve)
-        (curve0, path) # First part, length is three.
-        drawCurve(curve1, path) # Second part, length >= 3.
-    
-path = os.path.expanduser('~') + '/Fonts/Input/Input_Fonts/InputSans/InputSansCondensed/InputSansCondensed-Black.ttf'
-#font = fontTools.ttLib.TTFont(path)
-f = TTFont(path)
+path = os.path.expanduser('~') + '/Fonts/Input/Input_Fonts/InputSans/InputSansCondensed/InputSansCondensed-Black.ufo'
+class TestGlyph: pass
+f = UFOReader(path)
 msn = " MAKE\nS0ME\nN0ISE"
 #msn2 = ['M', 'A', 'K', 'E', 'S', 'zero', 'M', 'E', 'N', 'zero', 'I', 'S', 'E']
-msn2 = ['S']
-glyphNames = f['glyf'].keys()
+lines = [['space', 'M', 'A', 'K', 'E'],
+        ['S', 'zero', 'M', 'E'],
+        ['N', 'zero', 'I', 'S', 'E']]
 points = []
-#scale(0.3)
-
-for c in msn2:
-    g = f['glyf'][c]
-    for i, p in enumerate(g.coordinates):
-        type = g.flags.tolist()[i]
-        start = i - 1 in g.endPtsOfContours
-        points.append(Point(p[0], p[1], type=type, start=start))
-        
-contours = getGlyphContours(points)
-sContours = sortContours(contours)
-
-for contour in sContours['cw']:
-    drawOutlineContour(contour, 'black')
-    translate(800, 0)
-
-#for contour in sContours['ccw']:
-#    drawOutlineContour(contour, NSColor.whiteColor())
+scale(0.25)
+gs = f.getGlyphSet()
+print gs['S']
+pen = NoisePen()
 
 '''
 font("InputSansCompressed-Black")
 fontSize(256)
 text(msn, (100, 100))
 '''
+
+stroke(1, 0, 1)
+strokeWidth(5)
+#fill(1, 1, 0)
+#line((100, 100), (200, 200))
+
+translate(0, 2400)
+for l in lines:
+    save()
+    for c in l:
+        print c
+        g = Glyph(c, gs)
+        gs.readGlyph(c, g, pen)
+        translate(g.width, 0)
+    restore()
+    translate(0, -1000)    
+
+
+
+#gs.readGlyph("a", g, None)
+#g.drawPoints()
+
+
+#for c in msn2:
+    
+#    glyph = f[c]
+        
+#contours = getGlyphContours(points)
+#sContours = sortContours(contours)
+
+#for contour in sContours['cw']:
+#    pass
+    #drawOutlineContour(contour, 'black')
+    #translate(800, 0)
+
+#for contour in sContours['ccw']:
+#    drawOutlineContour(contour, NSColor.whiteColor())
+
+
