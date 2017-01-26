@@ -5,8 +5,14 @@ from tnbits.objects.point import Point
 import os.path
 from wayfinding.pens.cocoapen import CocoaPen
 from wayfinding.pens.wayfindingpen import WayFindingPen
-
+from AppKit import NSPoint
 from xml.dom import minidom
+import random
+
+def reflect(p0, p1, p2, p3):
+    px = p2 + (p2 - p0)
+    py = p3 + (p3 - p1)
+    return (px, py)
 
 def contourToPath(contour):
     path = BezierPath()
@@ -76,6 +82,7 @@ def contourToPath(contour):
             p5 = float(points.pop(0))
             p0prev = p4
             p1prev = p5
+            cp2 = reflect(p2, p3, p4, p5) # TODO: move to S, s
             path.curveTo((p0, p1), (p2, p3), (p4, p5))
                 
         elif segment[0] == 'c':
@@ -88,14 +95,23 @@ def contourToPath(contour):
             p0prev = p4
             p1prev = p5
             path.curveTo((p0, p1), (p2, p3), (p4, p5))
-            cp2 = (p2, p3)
+            cp2 = reflect(p2, p3, p4, p5) # TODO: move to S, s
         elif segment[0] == 's':
             p0 = float(points.pop(0)) + p0prev
             p1 = float(points.pop(0)) + p1prev
             p2 = float(points.pop(0)) + p0prev
             p3 = float(points.pop(0)) + p1prev
+            p0prev = p2
+            p1prev = p3
+            path.curveTo(cp2, (p0, p1), (p2, p3))
         elif segment[0] == 'S':
-            pass
+            p0 = float(points.pop(0))
+            p1 = float(points.pop(0))
+            p2 = float(points.pop(0))
+            p3 = float(points.pop(0))
+            p0prev = p2
+            p1prev = p3
+            path.curveTo(cp2, (p0, p1), (p2, p3))
             #path.curveTo()
     path.closePath()
     return path
@@ -139,17 +155,61 @@ def parseSVG(strings):
         paths.append(path)
     return paths
 
-doc = minidom.parse('make-some-noise.svg')  # parseString also exists
-strings = [path.getAttribute('d') for path
+
+def randomPointsInPaths(paths, n, dia):
+    for i in range(n):
+        x = random.randint(1, w)
+        y = random.randint(1, h)
+        p = NSPoint(x, y)
+        for path in paths:
+            if path._path.containsPoint_(p):
+                oval(x - 0.5 * dia, y - 0.5 * dia, dia, dia)
+
+def getSvgPaths(fileName):
+    doc = minidom.parse(fileName)  # parseString also exists
+    svgPaths = [path.getAttribute('d') for path
                 in doc.getElementsByTagName('path')]
-doc.unlink()
+    doc.unlink()
+    return svgPaths
 
-paths = parseSVG(strings)
+svgPaths = getSvgPaths('make-some-noise.svg')
+contours = parseSVG(svgPaths)
+svgPaths = getSvgPaths('make-some-noise-contra.svg')
+contourContra = parseSVG(svgPaths)[0]
+pathContra = contourToPath(contourContra)
 
-translate(0, 1100)
-scale(1, -1)
+size('A2')
+factor = 1.65
+translate(-80, 1800)
 
-for path in paths:
-    p = contourToPath(path)
-    fill(0, 0, 0)
-    drawPath(p)
+scale(factor, -factor)
+paths = []
+fill(0.5, 0.5, 0.5)
+
+for contour in contours:
+    path = contourToPath(contour)
+    paths.append(path)
+    #drawPath(path)
+
+w = width()
+h = height()
+
+#fill(0.9, 0.9, 0.7)
+#randomPointsInPaths([pathContra], 100, 15)
+#fill(0.9, 0.7, 0.9)
+#randomPointsInPaths([pathContra], 800, 10)
+fill(1, 0.7, 0)
+randomPointsInPaths(paths, 8000, 8)
+
+fill(0, 1, 0, 0.7)
+randomPointsInPaths(paths, 12000, 6)
+
+fill(1, 0.2, 0.2, 0.7)
+randomPointsInPaths(paths, 16000, 5)
+
+fill(0.2, 1, 1, 0.7)
+randomPointsInPaths(paths, 18000, 4)
+
+fill(0.2, 0.5, 1, 0.7)
+randomPointsInPaths(paths, 20000, 3)
+
