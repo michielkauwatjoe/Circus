@@ -12,6 +12,7 @@ class NoisePen(object):
         self.currentPath = [] 
 
     def addPoint(self, pt, segmentType=None, smooth=False, name=None, **kwargs):
+        #print pt, segmentType, smooth
         self.currentPath.append((pt, segmentType, smooth, name, kwargs))
 
     def endPath(self):
@@ -22,7 +23,7 @@ class NoisePen(object):
 
         if not points:
             return
-        print points
+        print 'endPath'
 
         # Not much more we can do than output a single move segment.
         if len(points) == 1:
@@ -36,8 +37,9 @@ class NoisePen(object):
         # Pop first moveTo point.
         pt, segmentType, smooth, name, kwargs = points[0]
         segments.append(("move", [(pt, smooth, name, kwargs)]))
-        points.pop(0)
+        #points.pop(0)
 
+        # Split up into segments.
         currentSegment = []
 
         for pt, segmentType, smooth, name, kwargs in points:
@@ -51,9 +53,10 @@ class NoisePen(object):
             segments.append(segment)
             currentSegment = []
 
-        print len(segments)
+        for s in segments:
 
-        self._flush(segments)
+            print s, len(s[1])
+        #self._flush(segments)
 
     def _flush(self, segments):
         u"""
@@ -106,7 +109,7 @@ class NoisePen(object):
                     path.lineTo(pt)
             elif segmentType == "curve":
                 path.curveTo(*points)
-            elif segmentType == "qcurve":
+            elif segmentType == "qcurve":k
                 path._curveToOne(*points)
             elif segmentType == "move":
                 pass
@@ -124,15 +127,20 @@ class NoisePen(object):
         #    path.endPath()
         
         drawPath(path)
-    
+ 
 path = os.path.expanduser('~') + '/Fonts/Input/Input_Fonts/InputSans/InputSansCondensed/InputSansCondensed-Black.ufo'
 class TestGlyph: pass
 f = UFOReader(path)
 msn = " MAKE\nS0ME\nN0ISE"
-#msn2 = ['M', 'A', 'K', 'E', 'S', 'zero', 'M', 'E', 'N', 'zero', 'I', 'S', 'E']
+
+# Full text.
 lines = [['space', 'M', 'A', 'K', 'E'],
         ['S', 'zero', 'M', 'E'],
         ['N', 'zero', 'I', 'S', 'E']]
+
+# Test glyphs only
+lines = [['S', 'zero', 'A']]
+
 points = []
 scale(0.25)
 gs = f.getGlyphSet()
