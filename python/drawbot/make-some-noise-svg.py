@@ -172,15 +172,15 @@ def getSvgPaths(fileName):
     doc.unlink()
     return svgPaths
 
-svgPaths = getSvgPaths('make-some-noise.svg')
+svgPaths = getSvgPaths('make-some-noise-bariol.svg')
 contours = parseSVG(svgPaths)
-svgPaths = getSvgPaths('make-some-noise-contra.svg')
+svgPaths = getSvgPaths('make-some-noise-bariol-contra.svg')
 contourContra = parseSVG(svgPaths)[0]
 pathContra = contourToPath(contourContra)
 
 size('A2')
-factor = 1.65
-translate(-80, 1800)
+factor = 1.6
+translate(-80, 1700)
 
 scale(factor, -factor)
 paths = []
@@ -194,22 +194,24 @@ for contour in contours:
 w = width()
 h = height()
 
-#fill(0.9, 0.9, 0.7)
-#randomPointsInPaths([pathContra], 100, 15)
-#fill(0.9, 0.7, 0.9)
-#randomPointsInPaths([pathContra], 800, 10)
+fill(0.9, 0.9, 0.7)
+randomPointsInPaths([pathContra], 100, 20)
+
+fill(0.9, 0.7, 0.9)
+randomPointsInPaths([pathContra], 800, 10)
+
 fill(1, 0.7, 0)
-randomPointsInPaths(paths, 8000, 8)
+randomPointsInPaths(paths, 8000, 12)
 
 fill(0, 1, 0, 0.7)
-randomPointsInPaths(paths, 12000, 6)
+randomPointsInPaths(paths, 12000, 8)
 
 fill(1, 0.2, 0.2, 0.7)
-randomPointsInPaths(paths, 16000, 5)
+randomPointsInPaths(paths, 16000, 6)
 
 fill(0.2, 1, 1, 0.7)
-randomPointsInPaths(paths, 18000, 4)
+randomPointsInPaths(paths, 20000, 4)
 
 fill(0.2, 0.5, 1, 0.7)
-randomPointsInPaths(paths, 20000, 3)
+randomPointsInPaths(paths, 24000, 3)
 
