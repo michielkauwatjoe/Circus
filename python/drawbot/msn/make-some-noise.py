@@ -24,9 +24,9 @@ def randomPointsInPaths(paths, n, dia, w, h):
                 '''
                 oval(x - 0.5 * dia, y - 0.5 * dia, dia, dia)
 
+
 svgPaths = getSvgPaths('bariol/make-some-noise.svg')
 contours = parseSVG(svgPaths)
-    
 
 svgPaths = getSvgPaths('bariol/make-some-noise-contra.svg')
 contourContra = parseSVG(svgPaths)[0]
@@ -46,7 +46,7 @@ fill(0, 0, 0)
 for contour in contours:
     path = contourToPath(contour)
     paths.append(path)
-    drawPath(path) # Enable for debugging.
+    #drawPath(path) # Enable for debugging.
 
 
 # Fills.
@@ -59,20 +59,13 @@ fill(0.9, 0.7, 0.9)
 randomPointsInPaths([pathContra], 800, 10, w, h)
 '''
 
-# Add for loop.
+layers = []
+layers.append([(1, 0.7, 0), 8000, 12])
+layers.append([(0, 1, 0, 0.7), 12000, 8])
+layers.append([(1, 0.2, 0.2, 0.7), 16000, 6])
+layers.append([(0.2, 1, 1, 0.7), 20000, 4])
+layers.append([(0.2, 0.5, 1, 0.7), 24000, 3])
 
-fill(1, 0.7, 0)
-randomPointsInPaths(paths, 8000, 12, w, h)
-
-
-#fill(0, 1, 0, 0.7)
-#randomPointsInPaths(paths, 12000, 8, w, h)
-
-#fill(1, 0.2, 0.2, 0.7)
-#randomPointsInPaths(paths, 16000, 6, w, h)
-
-#fill(0.2, 1, 1, 0.7)
-#randomPointsInPaths(paths, 20000, 4, w, h)
-
-#fill(0.2, 0.5, 1, 0.7)
-#randomPointsInPaths(paths, 24000, 3, w, h)
+for l in layers:
+    fill(*l[0])
+    randomPointsInPaths(paths, l[1], l[2], w, h)
