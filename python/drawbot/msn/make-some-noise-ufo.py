@@ -6,10 +6,12 @@ import os.path
 from wayfinding.pens.cocoapen import CocoaPen
 from wayfinding.pens.wayfindingpen import WayFindingPen
 
-class NoisePen(object): 
-        
+### NOTE: Still trying to get this working with UFO reader.
+
+class NoisePen(object):
+
     def beginPath(self):
-        self.currentPath = [] 
+        self.currentPath = []
 
     def addPoint(self, pt, segmentType=None, smooth=False, name=None, **kwargs):
         #print pt, segmentType, smooth
@@ -114,7 +116,7 @@ class NoisePen(object):
             elif segmentType == "move":
                 pass
                 #path.curveTo(*points)
-            else: 
+            else:
                 assert 0, "illegal segmentType: %s" % segmentType
 
         segmentType, points = segments[-1]
@@ -125,10 +127,11 @@ class NoisePen(object):
         path.closePath()
         #else:
         #    path.endPath()
-        
+
         drawPath(path)
- 
+
 path = os.path.expanduser('~') + '/Fonts/Input/Input_Fonts/InputSans/InputSansCondensed/InputSansCondensed-Black.ufo'
+
 class TestGlyph: pass
 f = UFOReader(path)
 msn = " MAKE\nS0ME\nN0ISE"
@@ -167,7 +170,7 @@ for l in lines:
         gs.readGlyph(c, g, pen)
         translate(g.width, 0)
     restore()
-    translate(0, -1000)    
+    translate(0, -1000)
 
 
 
@@ -176,9 +179,9 @@ for l in lines:
 
 
 #for c in msn2:
-    
+
 #    glyph = f[c]
-        
+
 #contours = getGlyphContours(points)
 #sContours = sortContours(contours)
 
