@@ -1,22 +1,20 @@
-#from circus.toolbox.bezier.svg2drawbot import *
-
-''' lib '''
-
-#from drawBot.context.baseContext import BezierPath
+from robofab.ufoLib import UFOReader
+from robofab.pens.pointPen import PrintingPointPen
+from robofab.glifLib import Glyph
+from tnbits.objects.point import Point
+import os.path
+from wayfinding.pens.cocoapen import CocoaPen
+from wayfinding.pens.wayfindingpen import WayFindingPen
+from AppKit import NSPoint
 from xml.dom import minidom
 import random
-import os.path
-from AppKit import NSPoint
 
 def reflect(p0, p1, p2, p3):
-    u"""Reflects off-curve control point in relation to on-curve one. Used for
-    smooth curves."""
     px = p2 + (p2 - p0)
     py = p3 + (p3 - p1)
     return (px, py)
 
 def contourToPath(contour):
-    u"""Converts SVG contour to a path in DrawBot."""
     path = BezierPath()
     p0prev = 0
     p1prev = 0
@@ -114,6 +112,7 @@ def contourToPath(contour):
             p0prev = p2
             p1prev = p3
             path.curveTo(cp2, (p0, p1), (p2, p3))
+            #path.curveTo()
     path.closePath()
     return path
 
@@ -156,16 +155,8 @@ def parseSVG(strings):
         paths.append(path)
     return paths
 
-def getSvgPaths(fileName):
-    doc = minidom.parse(fileName)  # parseString also exists
-    svgPaths = [path.getAttribute('d') for path
-                in doc.getElementsByTagName('path')]
-    doc.unlink()
-    return svgPaths
 
-''' --- '''
-
-def randomPointsInPaths(paths, n, dia, w, h): 
+def randomPointsInPaths(paths, n, dia):
     for i in range(n):
         x = random.randint(1, w)
         y = random.randint(1, h)
@@ -174,44 +165,44 @@ def randomPointsInPaths(paths, n, dia, w, h):
             if path._path.containsPoint_(p):
                 oval(x - 0.5 * dia, y - 0.5 * dia, dia, dia)
 
-svgPaths = getSvgPaths('make-some-noise-bariol.svg')
+def getSvgPaths(fileName):
+    doc = minidom.parse(fileName)  # parseString also exists
+    svgPaths = [path.getAttribute('d') for path
+                in doc.getElementsByTagName('path')]
+    doc.unlink()
+    return svgPaths
+
+svgPaths = getSvgPaths('wyome-leentje.svg')
 contours = parseSVG(svgPaths)
-svgPaths = getSvgPaths('make-some-noise-bariol-contra.svg')
-contourContra = parseSVG(svgPaths)[0]
-pathContra = contourToPath(contourContra)
-paths = []
-size('A2')
-factor = 1.6
-translate(-80, 1700)
+
+size('A2Landscape')
+factor = 1.4
+translate(0, 1200)
+
 scale(factor, -factor)
+paths = []
 fill(0.5, 0.5, 0.5)
 
 for contour in contours:
     path = contourToPath(contour)
     paths.append(path)
-    #drawPath(path) # Enable for debugging.
+    #drawPath(path)
 
 w = width()
 h = height()
 
-fill(0.9, 0.9, 0.7)
-randomPointsInPaths([pathContra], 100, 20, w, h)
-
-fill(0.9, 0.7, 0.9)
-randomPointsInPaths([pathContra], 800, 10, w, h)
-
 fill(1, 0.7, 0)
-randomPointsInPaths(paths, 8000, 12, w, h)
+randomPointsInPaths(paths, 8000, 8)
 
 fill(0, 1, 0, 0.7)
-randomPointsInPaths(paths, 12000, 8, w, h)
+randomPointsInPaths(paths, 12000, 6)
 
 fill(1, 0.2, 0.2, 0.7)
-randomPointsInPaths(paths, 16000, 6, w, h)
+randomPointsInPaths(paths, 16000, 5)
 
 fill(0.2, 1, 1, 0.7)
-randomPointsInPaths(paths, 20000, 4, w, h)
+randomPointsInPaths(paths, 18000, 4)
 
 fill(0.2, 0.5, 1, 0.7)
-randomPointsInPaths(paths, 24000, 3, w, h)
+randomPointsInPaths(paths, 20000, 3)
 
