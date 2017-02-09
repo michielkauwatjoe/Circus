@@ -8,120 +8,89 @@ import random
 import os.path
 from AppKit import NSPoint
 
-def reflect(p0, p1, p2, p3):
+def reflect(point0, point1):
     u"""Reflects off-curve control point in relation to on-curve one. Used for
     smooth curves."""
-    px = p2 + (p2 - p0)
-    py = p3 + (p3 - p1)
+    px = point1[0] + (point1[0] - point0[0])
+    py = point1[1] + (point1[1] - point0[1])
     return (px, py)
 
-def getRelative(points, p0prev, p1prev):
+def getRelative(points, pPrevious):
     newPoints = []
 
     for p in points:
-        newP = (p[0] + p0prev, p[1] + p1prev)
+        newP = (p[0] + pPrevious[0], p[1] + pPrevious[1])
         newPoints.append(newP)
 
     return newPoints
 
+def setPreviousPoint(previousPoint, currentPoint):
+    previousPoint[0] = currentPoint[0]
+    previousPoint[1] = currentPoint[1]
+
 def contourToPath(contour):
     u"""Converts SVG contour to a path in DrawBot."""
     path = BezierPath()
-    p0prev = 0
-    p1prev = 0
-    cp2 = None
+    pPrev = [0.0, 0.0]
+    cp = None
 
     for segment in contour:
         command = segment[0]
-        lower = command.islower()
-        upper = command.isupper()
         points = segment[1]
 
-        if command == 'M' or command == 'm':
-            p0, p1 = points[0]
-            p0prev = p0 = float(p0)
-            p1prev = p1 = float(p1)
-            point = (p0, p1)
-            path.moveTo(point)
-        elif command == 'L':
-            p0, p1 = points[0]
-            p0prev = p0
-            p1prev = p1
-            point = (p0, p1)
-            path.lineTo(point)
-        elif command == 'l':
-            p0, p1 = points[0]
-            p0 = p0 + p0prev
-            p1 = p1 + p1prev
-            p0prev = p0
-            p1prev = p1
-            point = (p0, p1)
-            path.lineTo(point)
-        elif command == 'h':
-            p0 = points[0][0]
-            p0 = p0 + p0prev
-            p1 = p1prev
-            p0prev = p0
-            point = (p0, p1)
-            path.lineTo(point)
-        elif command == 'H':
-            p0 = points[0][0]
-            p0 = p0
-            p1 = p1prev
-            p0prev = p0
-            point = (p0, p1)
-            path.lineTo(point)
-        elif command == 'v':
-            p1 = points[0][0]
-            p1 = p1 + p1prev
-            p0 = p0prev
-            p1prev = p1
-            point = (p0, p1)
-            path.lineTo(point)
-        elif command == 'V':
-            p1 = points[0][0]
-            p1 = p1
-            p0 = p0prev
-            p1prev = p1
-            point = (p0, p1)
-            path.lineTo(point)
-        elif command == 'C':
-            p0prev = p4
-            p1prev = p5
-            cp2 = reflect(p2, p3, p4, p5) # TODO: move to S, s
-            path.curveTo(*points)
+        relative = False
 
+        if command.islower():
+            relative = True
+            
+        command = command.lower()
+
+        if command == 'm':
+            if relative:
+                points = getRelative(points, pPrev)
+                
+            setPreviousPoint(pPrev, points[0])
+            path.moveTo(points[0]
+)
+        elif command == 'l':
+            if relative:
+                points = getRelative(points, pPrev)
+                
+            setPreviousPoint(pPrev, points[0])
+            path.lineTo(points[0])
+
+        elif command == 'h':            
+            if relative:
+                points[0][0] += pPrev[0]
+
+            points[0].append(pPrev[1])
+            setPreviousPoint(pPrev, points[0])
+            path.lineTo(points[0])
+            
+        elif command == 'v':
+            points[0].insert(0, pPrev[0])
+
+            if relative:
+                points[0][1] += pPrev[1]
+
+            setPreviousPoint(pPrev, points[0])
+            path.lineTo(points[0])
+    
         elif command == 'c':
-            #points = getRelative(points, p0prev, p1prev)
-            p0 = points[0][0] + p0prev
-            p1 = points[0][1] + p1prev
-            p2 = points[1][0] + p0prev
-            p3 = points[1][1] + p1prev
-            p4 = points[2][0] + p0prev
-            p5 = points[2][1] + p1prev
-            #p0prev = points[-1][0]
-            #p1prev = points[-1][1]
-            p0prev = p4
-            p1prev = p5
-            path.curveTo((p0, p1), (p2, p3), (p4, p5))
-            #path.curveTo(*points)
-            cp2 = reflect(p2, p3, p4, p5) # TODO: move to S, s
+            if relative:
+                points = getRelative(points, pPrev)
+                
+            path.curveTo(*points)
+            # TODO: move to S, s?
+            cp = reflect(points[-2], points[-1])
+            setPreviousPoint(pPrev, points[-1])
+
         elif command == 's':
-            p0 = points[0][0] + p0prev
-            p1 = points[0][1] + p1prev
-            p2 = points[1][0] + p0prev
-            p3 = points[1][1] + p1prev
-            p0prev = p2
-            p1prev = p3
-            path.curveTo(cp2, (p0, p1), (p2, p3))
-        elif command == 'S':
-            p0 = points[0][0]
-            p1 = points[0][1]
-            p2 = points[1][0]
-            p3 = points[1][1]
-            p0prev = p2
-            p1prev = p3
-            path.curveTo(cp2, (p0, p1), (p2, p3))
+            if relative:
+                points = getRelative(points, pPrev)
+                
+            setPreviousPoint(pPrev, points[-1])
+            path.curveTo(cp, *points)
 
     path.closePath()
     return path
@@ -240,7 +209,7 @@ fill(0, 0, 0)
 for contour in contours:
     path = contourToPath(contour)
     paths.append(path)
-    #drawPath(path) # Enable for debugging.
+    drawPath(path) # Enable for debugging.
 
 
 # Fills.
@@ -257,14 +226,14 @@ fill(1, 0.7, 0)
 randomPointsInPaths(paths, 8000, 12, w, h)
 
 
-fill(0, 1, 0, 0.7)
-randomPointsInPaths(paths, 12000, 8, w, h)
+#fill(0, 1, 0, 0.7)
+#randomPointsInPaths(paths, 12000, 8, w, h)
 
-fill(1, 0.2, 0.2, 0.7)
-randomPointsInPaths(paths, 16000, 6, w, h)
+#fill(1, 0.2, 0.2, 0.7)
+#randomPointsInPaths(paths, 16000, 6, w, h)
 
 #fill(0.2, 1, 1, 0.7)
-randomPointsInPaths(paths, 20000, 4, w, h)
+#randomPointsInPaths(paths, 20000, 4, w, h)
 
-fill(0.2, 0.5, 1, 0.7)
-randomPointsInPaths(paths, 24000, 3, w, h)
+#fill(0.2, 0.5, 1, 0.7)
+#randomPointsInPaths(paths, 24000, 3, w, h)
