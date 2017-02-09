@@ -116,42 +116,57 @@ def contourToPath(contour):
             path.curveTo(cp2, (p0, p1), (p2, p3))
     path.closePath()
     return path
-
+    
+def addValueToPoints(valuestring, points):
+    # Adds last value.
+    if len(valuestring) > 0:
+        value = float(valuestring)
+        
+        if len(points) == 0 or len(points[-1]) == 2:
+            points.append([])
+        
+        points[-1].append(value)
+        
 def parseSVG(strings):
-    cmd =['M', 'L', 'l', 'V', 'v', 'C', 'c', 'H', 'h', 'z', 's', 'S']
+    cmd =['m', 'l', 'v', 'c', 'h', 'z', 's']
+
     paths = []
 
     for string in strings:
+        command = None   # Current command.
+        valuestring = ''
         path = []
-        command = None
-        pointstring = ''
         points = []
 
         for c in string:
 
-            if c in cmd:
-                #print command, len(points)
+            if c.lower() in cmd:
+                # New command, add previous one to path.
                 if  command is not None:
                     path.append((command, points))
 
-
                 command = c
-                if len(pointstring) > 0:
-                    points.append(pointstring)
+                addValueToPoints(valuestring, points)
+
+                # Reset.
                 points = []
-                pointstring = ''
+                valuestring = ''
             else:
+                # Skip spaces.
                 if c == ' ':
                     continue
+
+                # New value.
                 if c == ',' or c == '-':
-                    if len(pointstring) > 0:
-                        points.append(pointstring)
+                    addValueToPoints(valuestring, points)
+
+                    # Split on minus.
                     if c == '-':
-                        pointstring = c
+                        valuestring = c
                     else:
-                        pointstring = ''
+                        valuestring = ''
                 else:
-                    pointstring += c
+                    valuestring += c
 
         paths.append(path)
     return paths
@@ -165,7 +180,7 @@ def getSvgPaths(fileName):
 
 ''' --- '''
 
-def randomPointsInPaths(paths, n, dia, w, h): 
+def randomPointsInPaths(paths, n, dia, w, h):
     for i in range(n):
         x = random.randint(1, w)
         y = random.randint(1, h)
@@ -174,9 +189,15 @@ def randomPointsInPaths(paths, n, dia, w, h):
             if path._path.containsPoint_(p):
                 oval(x - 0.5 * dia, y - 0.5 * dia, dia, dia)
 
-svgPaths = getSvgPaths('make-some-noise-bariol.svg')
+svgPaths = getSvgPaths('bariol/make-some-noise.svg')
 contours = parseSVG(svgPaths)
-svgPaths = getSvgPaths('make-some-noise-bariol-contra.svg')
+
+for c in contours:
+    print c
+    print '\n'
+    
+'''
+svgPaths = getSvgPaths('bariol/make-some-noise-contra.svg')
 contourContra = parseSVG(svgPaths)[0]
 pathContra = contourToPath(contourContra)
 paths = []
@@ -185,14 +206,22 @@ factor = 1.6
 translate(-80, 1700)
 scale(factor, -factor)
 fill(0.5, 0.5, 0.5)
+'''
 
-for contour in contours:
-    path = contourToPath(contour)
-    paths.append(path)
+#for contour in contours:
+#    path = contourToPath(contour)
+#    paths.append(path)
     #drawPath(path) # Enable for debugging.
 
 w = width()
 h = height()
+
+#fill(0.9, 0.9, 0.7)
+#randomPointsInPaths(paths, 1000, 20, w, h)
+
+
+'''
+# Fills.
 
 fill(0.9, 0.9, 0.7)
 randomPointsInPaths([pathContra], 100, 20, w, h)
@@ -214,4 +243,4 @@ randomPointsInPaths(paths, 20000, 4, w, h)
 
 fill(0.2, 0.5, 1, 0.7)
 randomPointsInPaths(paths, 24000, 3, w, h)
-
+'''
