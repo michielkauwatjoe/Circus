@@ -15,6 +15,15 @@ def reflect(p0, p1, p2, p3):
     py = p3 + (p3 - p1)
     return (px, py)
 
+def getRelative(points, p0prev, p1prev):
+    newPoints = []
+
+    for p in points:
+        newP = (p[0] + p0prev, p[1] + p1prev)
+        newPoints.append(newP)
+
+    return newPoints
+
 def contourToPath(contour):
     u"""Converts SVG contour to a path in DrawBot."""
     path = BezierPath()
@@ -23,111 +32,116 @@ def contourToPath(contour):
     cp2 = None
 
     for segment in contour:
+        command = segment[0]
+        lower = command.islower()
+        upper = command.isupper()
         points = segment[1]
 
-        if segment[0] == 'M':
-            p0, p1 = points
+        if command == 'M' or command == 'm':
+            p0, p1 = points[0]
             p0prev = p0 = float(p0)
             p1prev = p1 = float(p1)
             point = (p0, p1)
             path.moveTo(point)
-        elif segment[0] == 'L':
-            p0, p1 = points
-            p0 = float(p0)
-            p1 = float(p1)
+        elif command == 'L':
+            p0, p1 = points[0]
             p0prev = p0
             p1prev = p1
             point = (p0, p1)
             path.lineTo(point)
-        elif segment[0] == 'l':
-            p0, p1 = points
-            p0 = float(p0) + p0prev
-            p1 = float(p1) + p1prev
+        elif command == 'l':
+            p0, p1 = points[0]
+            p0 = p0 + p0prev
+            p1 = p1 + p1prev
             p0prev = p0
             p1prev = p1
             point = (p0, p1)
             path.lineTo(point)
-        elif segment[0] == 'h':
-            p0 = points[0]
-            p0 = float(p0) + p0prev
+        elif command == 'h':
+            p0 = points[0][0]
+            p0 = p0 + p0prev
             p1 = p1prev
             p0prev = p0
             point = (p0, p1)
             path.lineTo(point)
-        elif segment[0] == 'H':
-            p0 = points[0]
-            p0 = float(p0)
+        elif command == 'H':
+            p0 = points[0][0]
+            p0 = p0
             p1 = p1prev
             p0prev = p0
             point = (p0, p1)
             path.lineTo(point)
-        elif segment[0] == 'v':
-            p1 = points[0]
-            p1 = float(p1) + p1prev
+        elif command == 'v':
+            p1 = points[0][0]
+            p1 = p1 + p1prev
             p0 = p0prev
             p1prev = p1
             point = (p0, p1)
             path.lineTo(point)
-        elif segment[0] == 'V':
-            p1 = points[0]
-            p1 = float(p1)
+        elif command == 'V':
+            p1 = points[0][0]
+            p1 = p1
             p0 = p0prev
             p1prev = p1
             point = (p0, p1)
             path.lineTo(point)
-        elif segment[0] == 'C':
-            p0 = float(points.pop(0))
-            p1 = float(points.pop(0))
-            p2 = float(points.pop(0))
-            p3 = float(points.pop(0))
-            p4 = float(points.pop(0))
-            p5 = float(points.pop(0))
+        elif command == 'C':
             p0prev = p4
             p1prev = p5
             cp2 = reflect(p2, p3, p4, p5) # TODO: move to S, s
-            path.curveTo((p0, p1), (p2, p3), (p4, p5))
+            path.curveTo(*points)
 
-        elif segment[0] == 'c':
-            p0 = float(points.pop(0)) + p0prev
-            p1 = float(points.pop(0)) + p1prev
-            p2 = float(points.pop(0)) + p0prev
-            p3 = float(points.pop(0)) + p1prev
-            p4 = float(points.pop(0)) + p0prev
-            p5 = float(points.pop(0)) + p1prev
+        elif command == 'c':
+            #points = getRelative(points, p0prev, p1prev)
+            p0 = points[0][0] + p0prev
+            p1 = points[0][1] + p1prev
+            p2 = points[1][0] + p0prev
+            p3 = points[1][1] + p1prev
+            p4 = points[2][0] + p0prev
+            p5 = points[2][1] + p1prev
+            #p0prev = points[-1][0]
+            #p1prev = points[-1][1]
             p0prev = p4
             p1prev = p5
             path.curveTo((p0, p1), (p2, p3), (p4, p5))
+            #path.curveTo(*points)
             cp2 = reflect(p2, p3, p4, p5) # TODO: move to S, s
-        elif segment[0] == 's':
-            p0 = float(points.pop(0)) + p0prev
-            p1 = float(points.pop(0)) + p1prev
-            p2 = float(points.pop(0)) + p0prev
-            p3 = float(points.pop(0)) + p1prev
+        elif command == 's':
+            p0 = points[0][0] + p0prev
+            p1 = points[0][1] + p1prev
+            p2 = points[1][0] + p0prev
+            p3 = points[1][1] + p1prev
             p0prev = p2
             p1prev = p3
             path.curveTo(cp2, (p0, p1), (p2, p3))
-        elif segment[0] == 'S':
-            p0 = float(points.pop(0))
-            p1 = float(points.pop(0))
-            p2 = float(points.pop(0))
-            p3 = float(points.pop(0))
+        elif command == 'S':
+            p0 = points[0][0]
+            p1 = points[0][1]
+            p2 = points[1][0]
+            p3 = points[1][1]
             p0prev = p2
             p1prev = p3
             path.curveTo(cp2, (p0, p1), (p2, p3))
+
     path.closePath()
     return path
     
 def addValueToPoints(valuestring, points):
-    # Adds last value.
-    if len(valuestring) > 0:
-        value = float(valuestring)
+    u"""Adds the collected character string to the last coordinate in the points
+    list."""
+    if len(valuestring) == 0:
+        return
         
-        if len(points) == 0 or len(points[-1]) == 2:
-            points.append([])
+    value = float(valuestring)
         
-        points[-1].append(value)
+    if len(points) == 0 or len(points[-1]) == 2:
+        points.append([])
+        
+    points[-1].append(value)
         
 def parseSVG(strings):
+    u"""Takes a list of path strings and converts them to a list of SVG-command tuples.
+    """
     cmd =['m', 'l', 'v', 'c', 'h', 'z', 's']
 
     paths = []
@@ -187,50 +201,61 @@ def randomPointsInPaths(paths, n, dia, w, h):
         p = NSPoint(x, y)
         for path in paths:
             if path._path.containsPoint_(p):
+                dx = x - 0.5 * dia
+                dy =  y - 0.5*dia
+                '''
+                #translate(-x, -y)
+                rotate(45)
+                newPath()
+                moveTo((dx, dy))
+                lineTo((dx + dia, dy))
+                lineTo((dx + dia, dy + dia))
+                lineTo((dx, dy + dia))
+                closePath()
+                drawPath()
+                rotate(-45)
+                #translate(x, y)
+                '''
                 oval(x - 0.5 * dia, y - 0.5 * dia, dia, dia)
 
 svgPaths = getSvgPaths('bariol/make-some-noise.svg')
 contours = parseSVG(svgPaths)
-
-for c in contours:
-    print c
-    print '\n'
     
-'''
+
 svgPaths = getSvgPaths('bariol/make-some-noise-contra.svg')
 contourContra = parseSVG(svgPaths)[0]
 pathContra = contourToPath(contourContra)
 paths = []
-size('A2')
-factor = 1.6
-translate(-80, 1700)
-scale(factor, -factor)
-fill(0.5, 0.5, 0.5)
-'''
 
-#for contour in contours:
-#    path = contourToPath(contour)
-#    paths.append(path)
-    #drawPath(path) # Enable for debugging.
 
+# Approximately 40x50 cm (active screenprinting area).
+size(1134, 1417)
 w = width()
 h = height()
+factor = 1
+translate(0, h)
+scale(factor, -factor)
+fill(0, 0, 0)
 
-#fill(0.9, 0.9, 0.7)
-#randomPointsInPaths(paths, 1000, 20, w, h)
+for contour in contours:
+    path = contourToPath(contour)
+    paths.append(path)
+    #drawPath(path) # Enable for debugging.
 
 
-'''
 # Fills.
 
+'''
 fill(0.9, 0.9, 0.7)
 randomPointsInPaths([pathContra], 100, 20, w, h)
 
 fill(0.9, 0.7, 0.9)
 randomPointsInPaths([pathContra], 800, 10, w, h)
+'''
 
 fill(1, 0.7, 0)
 randomPointsInPaths(paths, 8000, 12, w, h)
+
 
 fill(0, 1, 0, 0.7)
 randomPointsInPaths(paths, 12000, 8, w, h)
@@ -238,9 +263,8 @@ randomPointsInPaths(paths, 12000, 8, w, h)
 fill(1, 0.2, 0.2, 0.7)
 randomPointsInPaths(paths, 16000, 6, w, h)
 
-fill(0.2, 1, 1, 0.7)
+#fill(0.2, 1, 1, 0.7)
 randomPointsInPaths(paths, 20000, 4, w, h)
 
 fill(0.2, 0.5, 1, 0.7)
 randomPointsInPaths(paths, 24000, 3, w, h)
-'''
