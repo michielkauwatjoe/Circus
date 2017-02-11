@@ -9,20 +9,23 @@ def randomPointsInPaths(paths, n, dia, w, h):
             if path._path.containsPoint_(p):
                 dx = x - 0.5 * dia
                 dy =  y - 0.5*dia
-                '''
                 #translate(-x, -y)
-                rotate(45)
+                save()
+
                 newPath()
                 moveTo((dx, dy))
                 lineTo((dx + dia, dy))
                 lineTo((dx + dia, dy + dia))
                 lineTo((dx, dy + dia))
                 closePath()
+                #translate(-10, -10)
+                #rotate(90)
+
                 drawPath()
-                rotate(-45)
+                restore()
+                #rotate(-45)
                 #translate(x, y)
-                '''
-                oval(x - 0.5 * dia, y - 0.5 * dia, dia, dia)
+                #oval(x - 0.5 * dia, y - 0.5 * dia, dia, dia)
 
 
 svgPaths = getSvgPaths('bariol/make-some-noise.svg')
@@ -39,8 +42,8 @@ size(1134, 1417)
 w = width()
 h = height()
 factor = 1
-translate(0, h)
-scale(factor, -factor)
+#translate(0, h)
+#scale(factor, -factor)
 fill(0, 0, 0)
 
 for contour in contours:
@@ -61,10 +64,10 @@ randomPointsInPaths([pathContra], 800, 10, w, h)
 
 layers = []
 layers.append([(1, 0.7, 0), 8000, 12])
-layers.append([(0, 1, 0, 0.7), 12000, 8])
-layers.append([(1, 0.2, 0.2, 0.7), 16000, 6])
-layers.append([(0.2, 1, 1, 0.7), 20000, 4])
-layers.append([(0.2, 0.5, 1, 0.7), 24000, 3])
+#layers.append([(0, 1, 0, 0.7), 12000, 8])
+#layers.append([(1, 0.2, 0.2, 0.7), 16000, 6])
+#layers.append([(0.2, 1, 1, 0.7), 20000, 4])
+#layers.append([(0.2, 0.5, 1, 0.7), 24000, 3])
 
 for l in layers:
     fill(*l[0])
