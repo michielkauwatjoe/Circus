@@ -10,23 +10,9 @@ def randomDotsInPaths(paths, n, dia, w, h):
 
         for path in paths:
             if path._path.containsPoint_(p):
-
-                dx = x - 0.5 * dia
-                dy =  y - 0.5 * dia
-
-                '''
-                at = getAffineTransform(45, x, y)
-                path = BezierPath()
-                path.moveTo((dx, dy))
-                path.lineTo((dx + dia, dy))
-                path.lineTo((dx + dia, dy + dia))
-                path.lineTo((dx, dy + dia))
-                nsPath = path.getNSBezierPath()
-                nsPath = at.transformBezierPath_(nsPath)
-                path.setNSBezierPath(nsPath)
-                drawPath(path)
-                '''
-                oval(dx, dy, dia, dia)
+                x0 = x - 0.5 * dia
+                y0 =  y - 0.5 * dia
+                oval(x0, y0, dia, dia)
                 break
 
 
