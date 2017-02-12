@@ -1,8 +1,24 @@
-from drawBot.context.baseContext import BezierPath
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Some functions to convert SVG paths from file to Bézier paths in DrawBot.
+
 from xml.dom import minidom
 import random
 import os.path
 from AppKit import NSPoint
+from drawBot.context.baseContext import BezierPath
+
+def svgFileToPaths(fileName):
+    paths = []
+    svgPaths = getSvgPaths(fileName)
+    contours = parseSVG(svgPaths)
+
+    for contour in contours:
+        path = contourToPath(contour)
+        paths.append(path)
+
+    return paths
 
 def getSvgPaths(fileName):
     u"""Extracts path strings from XML."""
