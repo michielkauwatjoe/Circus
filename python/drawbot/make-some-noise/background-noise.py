@@ -19,7 +19,10 @@ translate(0, h)
 scale(factor, -factor)
 
 layers = []
-layers.append([(0, 0, 0), 300, 16])
+n = 50000
+layers.append([(0, 0, 1), n, 2])
+layers.append([(1, 0, 0), n, 2])
+layers.append([(0, 1, 0), n, 2])
 
 for l in layers:
     fill(*l[0])
